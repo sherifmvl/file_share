@@ -1,0 +1,130 @@
+1. IPsec, TLS vs SSH comparison
+2. CPU architectures
+3. Windows vs Android file structure
+4. Windows, Linux vs Mac OS comparison
+5. Common terms in chip manufacturing and current small form factors
+6. Dijkstra’s SPF algorithm with example
+7. Python exceptions with example
+8. Python function types (4) with example
+9. STP evolution: STP to MST
+10. Certificate types (X.509, self-signed, CA-issued, DV, OV, EV)
+11. Types of pings
+12. RESTful API cURL methods with real-time PCAP
+13. DNS query types (record types) in PCAP (Linux)
+14. DHCP relay agent case with PCAP
+15. MPLS L2 VPN vs L3 VPN comparison (Kompella, Martini)
+16. Why Python stores integers with 28 bytes
+17. Network automation (Python Netmiko, Paramiko, Nornir, Jinja2, Ansible, Bash)
+18. Wireless terms: TDMA, FDMA, OFDM, OFDMA, MIMO, MU-MIMO, BPSK, QPSK, QAM, 16QAM, MLO
+19. Vim vs Nano commands
+20. 3G, 4G, 5G, WiFi, Bluetooth, nfc, zigbee comparison table
+21. Electronics and communications in satellite communication
+22. QoS vs TE vs RSVP comparison
+23. HTTP error codes with local PCAP
+24. VLAN types: native, default, extended, normal
+25. Packet forwarding types in cisco (cef, distributed forwarding..)
+26. Packet forwarding from ingree to egres interface flow: MAC rewrite, checksum recalculation, TTL decrement
+27. Hardware CEF (centralized vs distributed) vs software CEF
+28. Cisco IOS router bootup process flowchart
+29. Network automation data models: YANG, NETCONF, RESTCONF
+30. CIA triad comparison
+31. OpenSSL commands for certificate types (PEM, DER), CA/ICA/server certificate generation
+32. OSPF route selection order (longest prefix to N2)
+33. Windows pktmon vs tcpdump: commands, comparison and use cases
+34. SSH handshake with PCAP
+35. MPLS L3 VPN configuration step-by-step (igp, ldp,bgp,vrf,..order)
+36. Cisco NCS router vs Juniper router hardware comparison
+37. CPU vs FPGA vs ASICs
+38. Linux file types
+39. Linux (Debian) vs Windows WiFi cli commands (netsh in windows vs iw, iwinfo, ubus, wifi,..)
+40. IPsec vs WireGuard vs OpenVPN comparison
+41. Python data types: int, float, dict, set
+42. Boot Ubuntu via live USB step by step explained
+43. Router components: hardware (RAM, memory) vs software (bootloader, NVRAM)
+44. RSA, DH, DSA, HKDF, MD5, SHA, HMAC workings
+45. TLS 1.2, 1.3, DTLS, QUIC PCAP comparison (quic only UDP packet, explain each upd pkt meaning)
+46. Loop prevention in L2 and L3 (TTL, stp, spf algo,..)
+47. Routing protocol timers: RIP, EIGRP, OSPF, BGP
+48. Linux IP commands: ip link, ip a, ip r
+49. BGP route processing flowchart -adj rib in and out (refer from CCIE guide)
+50. BGP neighbor adjacency states explain with PCAP
+51. OSPF route filtering: ACL, prefix-list, route-map, summary no-advertise
+52. Network topology: R1 to R2 in Area 1 without Area 0. will it work? yee, but can't extend
+53. TOS vs DSCP comparison: Default, Assured, Class Selector, Expedited Forwarding
+54. OpenSSL all commands with examples
+55. Wireless 4-way handshake: WPA2, WPA3
+56. Bluetooth vs WiFi frequency band comparison
+57. Linux architecture
+58. Android boot sequence
+59. Linux network admin commands
+60. Linux terminal shortcuts
+61. Linux scheduling: Cron vs Systemd timers
+62. MBR vs GPT partition
+63. Linux distributions and their uses
+64. Python script for finding high-utilized directories alone
+65. Testing Python scripts in interactive mode
+66. Capturing TLS 1.2/1.3 sessions in Windows, Wireshark decryption
+67. RESTful API: cURL vs Wireshark output
+68. Data serialization: JSON, XML, YAML
+69. IPv4 vs IPv6 header
+70. HTTP status codes (200–500)
+71. MTU vs MSS
+72. OpenSSH commands: SFTP, ssh-keygen
+73. F5 load balancer traffic flow
+74. SD-WAN architecture
+75. Network automation with Ansible playbook
+76. Zero Trust security with 802.1X, IPsec, TLS
+77. EVPN with VXLAN
+78. Network monitoring: SNMP vs NetFlow
+79. Container networking: Docker/Kubernetes vs Linux LXC
+80. Zero-Configuration Networking: mDNS, DNS-SD
+81. CI/CD pipeline for network configurations
+82. Ansible vs Python automation use cases
+83. Segment Routing vs traditional MPLS
+84. Post-quantum cryptography in networking: CRYSTALS-Kyber in TLS/IPsec
+85. SD-WAN security with SASE
+86. IoT protocols: MQTT vs CoAP
+87. Private 5G networks for enterprises
+88. NetFlow vs sFlow vs IPFIX
+89. Packet capture pipeline: Wireshark, tcpdump examples
+90. Network telemetry: gRPC, YANG
+91. Multi-cloud connectivity with BGP
+92. Network slicing in 5G
+93. Time-Sensitive Networking (TSN) for Industrial IoT
+94. Intent-Based Networking (IBN)
+95. Cisco DNA and use cases
+96. Python TextFSM and networking use cases
+97. Packet flow: LAN to ISP via international peering (OSI model)
+98. TLS certificate: Google certificate with commands
+99. IS-IS vs OSPF comparison
+100. BGP neighbor adjacency troubleshooting
+101. SD-WAN vs traditional WAN comparison
+102. Network automation tools: Nornir vs Ansible vs SaltStack
+103. EIGRP configuration and troubleshooting steps
+104. MPLS Traffic Engineering with RSVP-TE
+105. BGP attributes and path selection process
+106. VXLAN vs VLAN: use cases and differences
+107. Linux iptables vs nftables comparison
+108. 5G NR (New Radio) architecture and components
+109. WiFi 6 vs WiFi 6E: frequency bands and benefits
+110. Network segmentation with microsegmentation
+111. Python NAPALM for network automation
+112. GRE vs IP-in-IP tunneling protocols
+113. Cloud-native networking: AWS VPC vs Azure VNet
+114. SRv6 (Segment Routing over IPv6) basics
+115. LISP (Locator/ID Separation Protocol) overview
+116. Network orchestration vs automation
+117. Wireshark filters for common network protocols
+118. BGP EVPN for data center networking
+119. QoS queuing mechanisms: FIFO, WFQ, CBWFQ, LLQ
+120. Network virtualization: VMware NSX vs Cisco ACI
+121. Linux kernel networking stack overview
+122. Mobile device chipsets: Qualcomm vs MediaTek vs Apple A-series
+123. Laptop hardware specs: CPU, GPU, RAM, SSD comparison
+124. Camera sensor technologies in smartphones
+125. 802.1Q VLAN tagging and trunking explained
+126. Network latency vs throughput vs jitter
+127. Python Scapy for packet crafting and analysis
+128. DNS over HTTPS (DoH) vs DNS over TLS (DoT)
+129. BGP flowspec for DDoS mitigation
+130. Linux network namespaces for container isolation
