@@ -1,4 +1,6 @@
-###Networking
+#Excalidrwa idea for making slides
+
+### Networking
 1. Dijkstra’s SPF algorithm with example
 2. STP evolution: STP to MST
 3. Types of pings
