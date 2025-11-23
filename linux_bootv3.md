@@ -156,11 +156,10 @@ This enables high‑performance interrupt workflows.
 # 🟩 Stage 4: Subsystems Initialization
 
 ## 🕒 Scheduler Initialization – **sched_init()**
-The scheduler decides:
-
-* which process runs
-* on which CPU
-* for how long
+Sets up:
+- CPU run queues
+- Scheduler classes (CFS, RT, Deadline)
+- Load balancing structures
 
 Initializing the scheduler means the system can now *multitask*.
 
