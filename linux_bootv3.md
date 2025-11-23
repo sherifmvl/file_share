@@ -1,7 +1,7 @@
 # Linux Kernel Boot Process: Complete Detailed Flow
 
-This document provides a **full, detailed, expanded explanation** of every stage in the Linux kernel boot process, rewritten **strictly based on the attached image** and including **all specific kernel functions** shown (such as `mm_init()`, `vfs_caches_init()`, `kswapd`, etc.).
-It contains **full descriptions, structured flow, sub‑steps, and technical clarity**, while keeping the original flow intact.
+This document provides a **full, detailed, expanded explanation** of every stage in the Linux kernel boot process,and including **all specific kernel functions** shown (such as `mm_init()`, `vfs_caches_init()`, `kswapd`, etc.).
+It contains **full descriptions, structured flow, sub‑steps, and technical clarity**
 
 ---
 
