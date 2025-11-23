@@ -188,6 +188,7 @@ Creates:
 - **kernel_init (PID 1)**
 - **kthreadd (PID 2)**
 - Per‑CPU idle threads
+
 This transitions Linux from early boot (single‑threaded) into **multitasking mode**.
 `rest_init()` is the bridge between “single threaded boot logic” → “multitasking OS.”
 ---
