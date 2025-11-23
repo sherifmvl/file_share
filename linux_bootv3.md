@@ -191,6 +191,7 @@ Creates:
 
 This transitions Linux from early boot (single‑threaded) into **multitasking mode**.
 `rest_init()` is the bridge between “single threaded boot logic” → “multitasking OS.”
+
 ---
 
 # 🟨 Stage 5: Kernel Threads and Root Filesystem Mount
