@@ -36,8 +36,8 @@ Checks:
 * Basic input devices
 
 If something critical is missing → **beep codes or error screens**.
-
 If everything looks good → firmware looks for a **bootable device** (SSD, USB, network boot).
+
 ---
 
 # 🟪 Stage 2: Bootloader
