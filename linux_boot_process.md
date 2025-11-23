@@ -4,9 +4,12 @@
 
 *Understanding the Linux Initialization Flow Without Reading Kernel Source Code*
 
-Booting a Linux system may feel mysterious. You press the power button… the laptop lights up… and suddenly you’re at a login screen. <br> Behind that smooth experience lies a sophisticated, multi-stage process involving firmware, bootloaders, <br> kernel initialization, drivers, filesystems, and finally the user space.
+Booting a Linux system may feel mysterious. You press the power button… the laptop lights up… and suddenly you’re at a login screen. <br>
+Behind that smooth experience lies a sophisticated, multi-stage process involving firmware, bootloaders, <br>
+kernel initialization, drivers, filesystems, and finally the user space.
 
-This article walks you through the **complete Linux boot process**, using the stages shown in your reference diagram — from<br> **Stage 1 to Stage 6**.
+This article walks you through the **complete Linux boot process**, using the stages shown in your reference diagram — from<br>
+**Stage 1 to Stage 6**.
 We cover each kernel function conceptually, making it easy for beginners to grasp what’s happening without needing to read kernel C code.
 
 ---
