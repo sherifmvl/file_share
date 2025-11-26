@@ -1,760 +1,518 @@
----
-
-✅ STAGE-BY-STAGE CHECKLIST FOR NETWORK CI/CD CHANGE (300 DEVICES)
-
-Enterprise-grade, operationally safe, audit-ready.
-
 
 ---
 
-0. CHANGE MANAGEMENT (Before Any CI/CD Execution)
+# ✅ **CLOSED-LOOP AUTOMATION — STAGE-BY-STAGE CHECKLIST**
 
-0.1 Raise Change Request
-
-[ ] Create formal change (e.g., CHG-1234)
-
-[ ] Add scope: 300 routers
-
-[ ] Add risk analysis
-
-[ ] Add planned procedure
-
-[ ] Add rollback plan
-
-[ ] Add testing plan
-
-[ ] Add success criteria
-
-[ ] Add backout window and change window
-
-
-0.2 Change Approval
-
-[ ] CAB/Manager approves
-
-[ ] Implementation time window confirmed
-
-
+### *With Prometheus, Kafka, Automation Engine (StackStorm/Rundeck), Nornir/Ansible, Grafana, and full remediation flow.*
 
 ---
 
-1. DEVELOPMENT STAGE (Pre-CI/CD)
+# **0. PREPARATION & INFRASTRUCTURE (Before Running Closed Loop)**
 
-1.1 Multi-Developer Workflow
+### **0.1 Tooling Dependencies**
 
-[ ] Developers create branch: feat/chg-1234-router-desc
+* [ ] Prometheus installed for metrics collection
+* [ ] Kafka cluster running (3-node minimum recommended)
+* [ ] Kafka topics:
 
-[ ] Update Jinja2 templates (interface + description)
+  * `telemetry.raw` (raw device telemetry)
+  * `telemetry.parsed`
+  * `events.interface-errors`
+  * `automation.remediation-requests`
+  * `automation.remediation-results`
+* [ ] Kafka Schema Registry configured (if using Avro/JSON schema)
+* [ ] Loki or Elasticsearch/Logstash for logs
+* [ ] StackStorm / Rundeck automation engine installed
+* [ ] Ansible / Nornir / pyATS runners validated
+* [ ] Secrets stored in Vault / Jenkins credentials
+* [ ] Grafana dashboards configured for:
 
-[ ] Update router inventory
-
-[ ] Update group_vars/host_vars if needed
-
-[ ] Update Ansible playbooks
-
-[ ] Update pyATS validation tests
-
-[ ] Update MySQL logging utilities (if needed)
-
-
-1.2 Code Review (MR/PR)
-
-[ ] Submit Merge Request/Pull Request
-
-[ ] Peer review completed
-
-[ ] Static linting (optional pre-check pipeline)
-
-[ ] Approvals collected
-
-[ ] Merge allowed only after required approvals
-
-
-1.3 Merge Final Code
-
-[ ] Code merged to main or release branch
-
-[ ] Repo triggers webhook → Jenkins
-
-
+  * telemetry
+  * alerts
+  * automation actions
+  * resolution statistics
 
 ---
 
-2. JENKINS PIPELINE STAGE CHECKLIST
+# **1. TELEMETRY COLLECTION STAGE (Continuous)**
 
+### **1.1 Device Telemetry Agents**
 
----
+* [ ] Install gNMI collectors, SNMP pollers, or streaming telemetry agents
+* [ ] Configure push or pull model (device → collector → Kafka/Prometheus)
+* [ ] Export metrics:
 
-Stage 0 — Device Reachability Gate (300 Routers)
+  * interface input errors
+  * CRC errors
+  * discards / drops
+  * speed/duplex
+  * link-flap counters
+* [ ] Ensure telemetry timestamp & device tags present
 
-2.0.1 Ping Check
+### **1.2 Push Telemetry Into Kafka**
 
-[ ] Ping each router with:
+* [ ] Collector publishes raw telemetry to `telemetry.raw`
+* [ ] Log agents push syslogs to Loki/ELK (optional: also Kafka stream)
 
-2 packets per attempt
+### **1.3 Prometheus Scraping**
 
-success = 0% packet loss
+* [ ] Prometheus scrapes exporter or adapter that reads from Kafka OR direct device exporter
+* [ ] Ensure key metrics are in Prometheus:
 
-
-[ ] Retry up to 3 times
-
-[ ] 10-second interval between retries
-
-
-2.0.2 Reachability Result Evaluation
-
-[ ] Collect:
-
-reachable_count
-
-unreachable list
-
-
-[ ] If 300/300 reachable → proceed
-
-
-2.0.3 Partial Reachability Handling
-
-If fewer than 300 reachable (example 280/300):
-
-[ ] Jenkins waits for operator input (max 2 min):
-
-Continue with reachable devices?
-
-Abort change?
-
-
-[ ] If operator selects NO:
-
-mark change failed (pre-deploy)
-
-log to MySQL
-
-send notification
-
-exit pipeline
-
-
-[ ] If operator selects YES OR timeout:
-
-use only reachable subset
-
-update inventory file
-
-write per-device reachability to MySQL
-
-
-
+  * `interface_errors`
+  * `crc_errors`
+  * `rx_drops`
+  * `link_flap_events`
 
 ---
 
-Stage 1 — Prepare Workspace
+# **2. STREAM PROCESSING & ANOMALY DETECTION (Kafka Stage)**
 
-[ ] Cleanup workspace
+### **2.1 Kafka Stream Processing**
 
-[ ] SCM checkout
+Using Kafka Streams / Flink / Spark Streaming:
 
-[ ] Load Jenkins credentials
+* [ ] Subscribe to `telemetry.raw`
+* [ ] Parse, normalize and write structured telemetry → `telemetry.parsed`
+* [ ] Apply anomaly detection rules:
 
-[ ] Load MySQL credentials
+  * sudden spike in interface errors
+  * CRC exceeding threshold
+  * error_rate > historical baseline
+  * correlated flapping
+* [ ] If anomaly detected → publish event to:
 
-[ ] Load Ansible vault/password
+  * `events.interface-errors`
 
+### **2.2 Optional ML/Anomaly Detection**
 
+* [ ] Use ML model to detect unusual patterns
+* [ ] Feed ML model with historical telemetry stored in Kafka / object-store
+* [ ] Auto-classify event type:
 
----
-
-Stage 2 — Build
-
-[ ] Validate presence of:
-
-requirements.txt
-
-requirements.yml
-
-
-[ ] Install Python dependencies
-
-[ ] Install Ansible roles
-
-[ ] Create vault temp file
-
-[ ] Validate Jinja2 template syntax
-
-
+  * physical layer
+  * speed/duplex mismatch
+  * routing adjacency issue
+  * QoS buffer oversubscription
 
 ---
 
-Stage 3 — Test (Lint & Validation)
+# **3. ALERT GENERATION & ROUTING**
 
-[ ] yamllint
+### **3.1 Prometheus Alert Rules**
 
-[ ] ansible-lint
+* [ ] Define alert thresholds:
 
-[ ] pyATS testbed validation
+  * `interface_errors > X`
+  * `crc_errors increasing`
+  * `drops > baseline`
+* [ ] Alerts forwarded to Alertmanager
 
-[ ] If failure:
+### **3.2 Alert Routing**
 
-log in MySQL
+* [ ] Alertmanager groups alerts per device and interface
+* [ ] Webhook sent to StackStorm/Rundeck with:
 
-send notifications
-
-fail pipeline
-
-
-
-
----
-
-Stage 4 — Pre-Change Snapshot
-
-[ ] For all selected devices (300 or 280):
-
-run “show running-config”
-
-run “show interface <iface>”
-
-
-[ ] Save into pre_snapshots/<device>.txt
-
-[ ] Write snapshot metadata to MySQL
-
-
+  * device
+  * interface
+  * error type
+  * timestamp
+  * Prometheus snapshot
 
 ---
 
-Stage 5 — CANARY DRY RUN (5 Routers)
+# **4. AUTOMATION ENGINE (StackStorm / Rundeck) — DECISION GATE**
 
-5.1 Dry Run
+### **4.1 Receive Alert**
 
-[ ] Select 5 canary routers
+* [ ] Automation engine receives webhook
+* [ ] Validate alert payload (device, interface, metrics)
+* [ ] Check if device is allowed for auto-remediation
+* [ ] Check maintenance window / policy
+* [ ] Determine severity
 
-[ ] Render Jinja2 template → config preview
+### **4.2 Decision Point**
 
-[ ] Run Ansible in --check mode
-
-[ ] Evaluate dry-run output
-
-
-5.2 Dry Run Decision
-
-[ ] If canary dry-run fails:
-
-log to MySQL
-
-send notification
-
-fail pipeline
-
-
-
+* [ ] If severity low → auto-remediate
+* [ ] If severity medium/high → request approval
+* [ ] If no response in X minutes → fallback action defined
 
 ---
 
-Stage 6 — CANARY REAL APPLY (5 Routers)
+# **5. DATA COLLECTION (Troubleshooting Inputs)**
 
-6.1 Apply Changes
+### **5.1 Automated Troubleshooting Commands**
 
-[ ] Apply configuration on 5 canary routers
+* [ ] Fetch:
 
-[ ] Collect post-change interface outputs
+  * `show interface <X>`
+  * `show controllers <X>`
+  * `show log last 200`
+  * `show ip route` or protocol-specific (OSPF/BGP)
+* [ ] If needed:
 
-[ ] Validate via pyATS:
+  * run selective packet capture
+  * gather interface history
+  * check error counters over last N intervals
 
-description applied
+### **5.2 Store Troubleshooting Artifacts**
 
-interface up (if required)
+* [ ] Send logs to:
 
-
-
-6.2 Canary Apply Decision
-
-[ ] If ANY canary fails:
-
-rollback on failed devices
-
-log to MySQL
-
-notify failure
-
-stop pipeline
-
-
-
+  * S3/MinIO
+  * Elasticsearch/Loki
+  * Kafka topic (`automation.tshoot-logs`)
 
 ---
 
-Stage 7 — MAIN ROLLOUT (Batches of 30 Routers)
+# **6. ANALYSIS LAYER**
 
-7.1 Batch Formation
+### **6.1 Rule-Based Analysis**
 
-[ ] Total devices (minus 5 canaries)
+* [ ] If CRC errors ⇒ Likely physical
+* [ ] If input errors + no CRC ⇒ queue drops or QoS
+* [ ] If flaps ⇒ speed/duplex mismatch or cable
 
-[ ] Divide into batches of 30
+### **6.2 Cross-Correlation**
 
-[ ] Final batch may be <30
+* [ ] Search logs for:
 
+  * link down
+  * negotiation failures
+  * duplex mismatch
+* [ ] Evaluate increment pattern:
 
-7.2 For Each Batch
+  * last 5 min vs last 1 hour
 
-[ ] Render Jinja2 template for each device
+### **6.3 Identify Possible Remediation Actions**
 
-[ ] Apply Ansible playbook
-
-[ ] Capture per-device results
-
-[ ] Write each device’s result to MySQL
-
-[ ] Optional: post-check on sample devices
-
-
-7.3 Batch Failure Decision
-
-If a batch contains failures:
-
-[ ] Prompt operator:
-
-Continue skip failed?
-
-Rollback failed?
-
-Abort entire change?
-
-
-
-If user chooses:
-
-Continue:
-
-skip failed devices
-
-record failures in MySQL
-
-
-Rollback failed:
-
-rollback only failed devices
-
-decide:
-
-continue next batch OR stop change
-
-
-
-Timeout (default continue):
-
-skip failed devices
-
-log policy-triggered continue in MySQL
-
-
-
+* [ ] Clear counters (safe)
+* [ ] Shut/no-shut interface
+* [ ] Force speed/duplex
+* [ ] Reseat optics (if hardware)
+* [ ] Adjust QoS
 
 ---
 
-Stage 8 — Post-Change Snapshot & Validation
+# **7. REMEDIATION EXECUTION (Ansible / Nornir / pyATS)**
 
-8.1 Snapshot
+### **7.1 Pre-Check**
 
-[ ] Collect post-change config per device
+* [ ] Ensure device reachable
+* [ ] Ensure automation login works
+* [ ] Save device config (backup)
 
-[ ] Compare pre vs post (diff)
+### **7.2 Primary Safe Actions**
 
-[ ] Store diffs in post_snapshots
+* [ ] Clear counters
+* [ ] Re-check if fast recovery happens
 
+### **7.3 Secondary Actions (Higher Impact)**
 
-8.2 Validation
+* [ ] Shut/no-shut interface
+* [ ] Adjust speed/duplex
+* [ ] Apply QoS tuning
+* [ ] Reset transceiver (if platform supports)
+* [ ] Re-enable port-channel member
 
-[ ] pyATS interface description match
+### **7.4 Post-Action Collection**
 
-[ ] interface operational correctness
-
-[ ] write validation status per device to MySQL
-
-
-
----
-
-Stage 9 — Declarative Post Actions
-
-[ ] Clean temp vault files
-
-[ ] Clean rendered config files
-
-[ ] Archive artifacts (logs, diffs)
-
-[ ] Update MySQL:
-
-pipeline_runs summary
-
-device_change_logs entries
-
-
-[ ] Update inventory:
-
-list reachable devices
-
-list skipped/failed devices
-
-
-[ ] Notifications:
-
-Email + Slack/Webex
-
-Indicate CHG-ID, run ID, success/failure
-
-
-[ ] If failure % > threshold:
-
-auto-mark change as failed
-
-auto-rollback if policy configured
-
-
-
+* [ ] Re-run `show interface`
+* [ ] Compare counters (should reset or stabilize)
+* [ ] Write logs to Kafka: `automation.remediation-results`
 
 ---
 
-Stage 10 — Grafana Publishing
+# **8. VERIFICATION LOOP**
 
-Dashboards Generated
+### **8.1 Automated Validation**
 
-[ ] Time-series view (x-axis = date/time)
+* [ ] Check whether interface errors have:
 
-[ ] Change summary table (CHG-ID, result, devices touched)
+  * stopped increasing
+  * returned to normal baseline
+  * interface remains UP
+* [ ] Prometheus executes follow-up rule:
 
-[ ] Per-device result table (300 rows)
+  * Compare post-remediation metrics within 1–3 minutes
+* [ ] If error continues → escalate to human
+* [ ] If resolved → automatically close alert
 
-[ ] Offline devices view (from reachability stage)
+### **8.2 Close Alert**
 
-[ ] Batch performance (batch vs success %)
-
-[ ] Failure heatmap (optional)
-
-
-
----
-
-⭐ OPTIONAL ADD-ONS (Industry-grade Enhancements)
-
-A. Canary expansion
-
-If 5 succeed, run 10-device sample before full batch.
-
-B. Automatic region-based grouping
-
-Rollout per location (POP1 → POP2 → POP3).
-
-C. Automated ticket creation/close
-
-Integrate Jira/ServiceNow via API.
-
-D. Predictive “blast radius check”
-
-Pre-check routing adjacencies before change.
-
-E. Instant rollback-on-impact
-
-If pyATS detects protocol flap → rollback immediately.
-
+* [ ] Auto-send closure to Alertmanager
+* [ ] Update ticket / incident (ServiceNow / Jira) via API
+* [ ] Publish success event to Kafka
 
 ---
 
+# **9. LOGGING, AUDIT & DB UPDATES**
 
+### **9.1 Log All Details**
 
+* [ ] Raw telemetry
+* [ ] Analysis summary
+* [ ] Remediation steps
+* [ ] Post-check results
 
-Advanced CI/CD + Change Control Flow
+### **9.2 Store in DB/Kafka**
 
-Formal change request + approval
+* [ ] MySQL/Elastic/Kafka used as persistent store
+* [ ] Write:
 
-Multi-dev coding & MR approvals
-
-Git push → GitHub/GitLab
-
-Jenkins pipeline with:
-
-Reachability gate (300 pings, retries)
-
-Smart handling of partial reachability
-
-5-device canary dry-run + real apply
-
-Batch rollout in 30s with decision points
-
-Rollback logic
-
-Inventory + MySQL updates
-
-Grafana publishing
-
-
+  * `automation.remediation-requests`
+  * `automation.remediation-results`
 
 ---
 
-🔧 Advanced CI/CD + Change Control Flow
+# **10. FEEDBACK LOOP & SELF-IMPROVEMENT**
 
-(1) FORMAL CHANGE MANAGEMENT
-─────────────────────────────────────────────────────────────────────────────
-   ┌─────────────────────────┐
-   │  Change Raised          │
-   │  - Change ID (CHG-1234) │
-   │  - Scope: 300 routers   │
-   │  - Window, risk, plan   │
-   └─────────────┬───────────┘
-                 │
-                 ▼
-   ┌─────────────────────────┐
-   │ Change Approval Board   │
-   │ (CAB / Manager / Lead)  │
-   └─────────────┬───────────┘
-         Approved│
-                 ▼
-(2) DEV & CODE REVIEW WORKFLOW
-─────────────────────────────────────────────────────────────────────────────
-   ┌─────────────────────────────────────────────────────────────┐
-   │  Multiple Developers                                       │
-   │  - DevA, DevB, DevC...                                     │
-   │  - Work on feature branch: feat/chg-1234-int-desc          │
-   │  - Update:                                                 │
-   │      * Jinja2 template (interface desc)                    │
-   │      * Inventory / vars for 300 routers                    │
-   │      * Ansible playbooks + tests                           │
-   └─────────────┬──────────────────────────────────────────────┘
-                 │
-                 │  git commit (local)
-                 │
-                 ▼
-   ┌─────────────────────────────────────────────────────────────┐
-   │  Create Merge Request / Pull Request                        │
-   │  - Code review by peers                                     │
-   │  - Static checks (optional pre-MR CI)                       │
-   │  - Approvals required (Lead / Architect)                    │
-   └─────────────┬──────────────────────────────────────────────┘
-                 │ MR approved
-                 ▼
-   ┌─────────────────────────────────────────────────────────────┐
-   │   Merge to main / release branch                            │
-   │   Repo: GitHub or GitLab                                    │
-   └─────────────┬──────────────────────────────────────────────┘
-                 │
-                 │ git push (merge)
-                 ▼
-(3) GIT REPO & WEBHOOK
-─────────────────────────────────────────────────────────────────────────────
-   ┌─────────────────────────────────────────────────────────────┐
-   │   GitHub / GitLab                                           │
-   │   - Stores main branch                                      │
-   │   - Emits webhook on push to main                           │
-   └─────────────┬──────────────────────────────────────────────┘
-                 │ HTTP POST /webhook
-                 ▼
-(4) JENKINS CI/CD PIPELINE (HIGH-LEVEL)
-─────────────────────────────────────────────────────────────────────────────
-   ┌─────────────────────────────────────────────────────────────┐
-   │                        Jenkins                              │
-   │        (Multibranch Pipeline with Jenkinsfile)              │
-   └─────────────┬──────────────────────────────────────────────┘
-                 │
-                 ▼
-   ┌─────────────────────────────────────────────────────────────┐
-   │ STAGE 0: DEVICE REACHABILITY CHECK                          │
-   │  - For all 300 routers:                                     │
-   │      ping -c 2 -W timeout                                   │
-   │  - If ping fails: retry up to 3 times with 10s interval      │
-   │                                                             │
-   │  RESULT:                                                    │
-   │    * reachable_count (e.g. 300, or 280)                     │
-   │    * unreachable list                                       │
-   └─────────────┬──────────────────────────────────────────────┘
-                 │
-   ┌─────────────┴─────────────────────────────────────┐
-   │ DECISION A: ALL REACHABLE?                        │
-   │  IF 300 / 300 reachable → continue automatically  │
-   │  ELSE (e.g. 280/300 reachable)                    │
-   └─────────────┬─────────────────────────────────────┘
-                 │
-                 ├─────────────────────────────────────────────────────┐
-                 │                                                     │
-                 ▼                                                     ▼
-        PATH A: 300/300 OK                                   PATH B: SOME OFFLINE
-        ─────────────────────────────────────          ─────────────────────────────────
-        ┌────────────────────────────────────────┐     ┌───────────────────────────────┐
-        │ Continue to Pre-Change Snapshot &      │     │  PROMPT USER (2 min timeout) │
-        │ Canary Testing                         │     │                               │
-        └────────────────────────────────────────┘     │  "Only 280/300 are reachable.│
-                                                       │   Continue with 280 devices?  │
-                                                       └─────────────┬─────────────────┘
-                                                                     │
-                                        ┌────────────────────────────┴─────────────────────────────┐
-                                        │ DECISION B: USER INPUT                                  │
-                                        └────────────────────────────┬─────────────────────────────┘
-                                                                     │
-                          ┌──────────────────────────────────────────┼───────────────────────────────────┐
-                          │                                          │                                   │
-                          ▼                                          ▼                                   ▼
-                 OPTION B1: USER SAYS "NO"                  OPTION B2: USER SAYS "YES"          OPTION B3: NO INPUT
-                 ────────────────────────────               ────────────────────────────         ─────────────────────
-       ┌────────────────────────────────────────┐   ┌────────────────────────────────────┐   ┌───────────────────────┐
-       │ - Mark change as FAILED (pre-deploy)   │   │ - Proceed with 280 reachable devs │   │ - After 2 min timeout │
-       │ - Log to MySQL: change failed due to   │   │ - Inventory auto-updated to 280   │   │   default → CONTINUE  │
-       │   offline devices                      │   │ - MySQL updated: reachability     │   │   with 280 reachable  │
-       │ - Notify via email/Slack/tool          │   │   info per device                 │   │ - Same as B2 path     │
-       │ - Pipeline ends                        │   └────────────────────────────────────┘   └───────────────────────┘
+### **10.1 Update Policies**
 
+* [ ] Update thresholds based on frequency
+* [ ] Add new rules when recurring issues detected
+* [ ] Improve remediation logic based on results
 
-(5) PRE-CHANGE SNAPSHOTS & CANARY TESTING
-─────────────────────────────────────────────────────────────────────────────
-   (Executed for either 300 devices (Path A) or reachable subset (Path B2/B3))
+### **10.2 ML Model Enhancement**
 
-   ┌─────────────────────────────────────────────────────────────┐
-   │ STAGE 1: PRE-CHANGE SNAPSHOT                               │
-   │  - Collect baseline from all selected devices:             │
-   │      * show running-config                                  │
-   │      * show interface <target>                              │
-   │  - Store in: pre_snapshots/<device>.txt                     │
-   │  - Log snapshot start/end to MySQL                         │
-   └─────────────┬──────────────────────────────────────────────┘
-                 │
-                 ▼
-   ┌─────────────────────────────────────────────────────────────┐
-   │ STAGE 2: CANARY DRY RUN (5 DEVICES)                         │
-   │  - Select 5 canary routers (critical / representative)      │
-   │  - Render JINJA2 template for those routers                 │
-   │  - Run Ansible in --check (dry-run)                         │
-   │  - Compare proposed config vs baseline for validation       │
-   └─────────────┬──────────────────────────────────────────────┘
-                 │
-   ┌─────────────┴─────────────────────────────────────┐
-   │ DECISION C: CANARY DRY RUN OK?                    │
-   └─────────────┬─────────────────────────────────────┘
-                 │
-    ┌────────────┼─────────────────────────────┐
-    │            │                             │
-    ▼            ▼                             ▼ (optional prompt)
-FAIL PATH 1  SUCCESS PATH 1                     (you could ask for manual approval here)
+* [ ] Train model on:
 
-FAIL: DRY RUN FAILED                           SUCCESS: PROCEED
-────────────────────────                       ──────────────────────────────
-┌────────────────────────────────────────┐     ┌─────────────────────────────┐
-│ - Log failure to MySQL (stage=test)    │     │ STAGE 3: CANARY REAL APPLY  │
-│ - Attach dry-run output & diffs        │     │  - Apply on same 5 devices  │
-│ - Notify change FAILED (no config      │     │  - Compare post-output:     │
-│   change executed)                     │     │      desc actually changed  │
-│ - End pipeline                         │     │  - Snapshot & validate      │
-└────────────────────────────────────────┘     └─────────────┬───────────────┘
-                                                            │
-                                                ┌───────────┴───────────────┐
-                                                │ DECISION D: 5 CANARY OK? │
-                                                └───────────┬───────────────┘
-                                                            │
-               ┌────────────────────────────────────────────┼────────────────────────────────┐
-               │                                            │                                │
-               ▼                                            ▼                                ▼
-       FAIL PATH 2                                   SUCCESS PATH 2                  (optional user input)
-       ─────────────────────────────────         ─────────────────────────────────
-┌────────────────────────────────────────┐   ┌────────────────────────────────────────┐
-│ - Post-check fails on ≥1 canary       │   │ - Mark canary phase SUCCESS            │
-│   (e.g. desc not applied, interface   │   │ - Proceed to HUGE rollout              │
-│    down, or validation mismatch)      │   │   with batches of 30 devices           │
-│ - Execute rollback for those 5        │   └────────────────────────────────────────┘
-│ - Log details & rollback to MySQL    │
-│ - Notify "Change FAILED at canary"   │
-│ - End pipeline                        │
-└────────────────────────────────────────┘
+  * device type
+  * port type
+  * vendor OS
+  * historical behavior
 
-(6) MASS ROLLOUT TO REMAINING DEVICES (BATCHES OF 30)
-─────────────────────────────────────────────────────────────────────────────
-   ┌─────────────────────────────────────────────────────────────┐
-   │ STAGE 4: MAIN DEPLOYMENT                                   │
-   │  - Determine remaining targets:                            │
-   │      * All selected devices minus 5 canaries               │
-   │  - Split into batches of 30 (last batch smaller)           │
-   │  - For EACH batch (BATCH_N):                               │
-   │      1. Render JINJA2 per device                           │
-   │      2. Run Ansible APPLY                                  │
-   │      3. Record per-device result to MySQL                  │
-   │      4. Optional: post-check on each device / sample set   │
-   └─────────────┬──────────────────────────────────────────────┘
-                 │
-                 ▼
-   ┌─────────────────────────────────────────────────────────────┐
-   │ DECISION E: DID BATCH_N HAVE FAILURES?                      │
-   └─────────────┬──────────────────────────────────────────────┘
-                 │
-      ┌──────────┼─────────────────────────────┐
-      │          │                             │
-      ▼          ▼                             ▼
- NO FAILURES   SOME FAILURES                   ─ (optional auto policy)
-────────────   ────────────────
-┌────────────────────────────────────────┐    ┌─────────────────────────────────────┐
-│ - Log all devices in batch as success │    │ PROMPT USER:                        │
-│ - Proceed to next batch               │    │  "Batch N: X devices failed.        │
-└────────────────────────────────────────┘    │   Continue or rollback failed?"     │
-                                              └─────────────┬──────────────────────┘
-                                                            │
-                  ┌─────────────────────────────────────────┼─────────────────────────────┐
-                  │                                         │                             │
-                  ▼                                         ▼                             ▼
-        OPTION E1: USER "CONTINUE"            OPTION E2: USER "ROLLBACK FAILED"   (Option E3: Timeout → policy)
-        ───────────────────────────           ─────────────────────────────────    ──────────────────────────────
-┌──────────────────────────────────────┐    ┌──────────────────────────────────┐   e.g. default = continue:
-│ - Skip failed devices in subsequent │    │ - Run rollback only on failed    │   - mark failed devices in DB
-│   batches / retry later             │    │   devices in batch               │   - continue rollout
-│ - Mark them as failed in MySQL      │    │ - Log rollback results to MySQL  │
-│ - Continue with next batch          │    │ - Decide:                        │
-└──────────────────────────────────────┘    │    * stop entire rollout, OR     │
-                                            │    * continue with remaining     │
-                                            └──────────────────────────────────┘
+---
 
-(7) POST-CHANGE SNAPSHOTS & VALIDATION (ALL TOUCHED DEVICES)
-─────────────────────────────────────────────────────────────────────────────
-   ┌─────────────────────────────────────────────────────────────┐
-   │ STAGE 5: POST-CHANGE SNAPSHOT & TESTS                      │
-   │  - Collect new "show run" / "show interface"               │
-   │  - Run pyATS/validation:                                  │
-   │       * verify new description present                    │
-   │       * verify interfaces UP (as required)                │
-   │  - Generate diffs: pre vs post                            │
-   │  - Update MySQL results per device                        │
-   └─────────────┬──────────────────────────────────────────────┘
-                 │
-                 ▼
-(8) DECLARATIVE POST ACTIONS, INVENTORY & VISIBILITY
-─────────────────────────────────────────────────────────────────────────────
-   ┌─────────────────────────────────────────────────────────────┐
-   │ STAGE 6: DECLARATIVE POST ACTIONS                          │
-   │  - Cleanup temp secrets / Jinja2 artifacts                 │
-   │  - Update INVENTORY:                                       │
-   │       * include only devices that actually changed         │
-   │       * record offline or skipped devices                  │
-   │  - Update MySQL:                                           │
-   │       * pipeline_runs (summary per change)                 │
-   │       * device_change_logs (per device)                    │
-   │  - Send notifications:                                     │
-   │       * Email / Slack: success / failure / partial         │
-   │       * Include change ID (CHG-1234), stats, links         │
-   │  - If failure threshold exceeded → auto "change failed"    │
-   │       * optional global rollback                           │
-   └─────────────┬──────────────────────────────────────────────┘
-                 │
-                 ▼
-(9) GRAFANA & REPORTING
-─────────────────────────────────────────────────────────────────────────────
-   ┌─────────────────────────────────────────────────────────────┐
-   │   MySQL DATABASE                                            │
-   │   - pipeline_runs (per change / run)                        │
-   │   - device_change_logs (per router / per batch)             │
-   └─────────────┬──────────────────────────────────────────────┘
-                 │
-         Grafana MySQL Datasource (and optional Prometheus)
-                 │
-                 ▼
-   ┌─────────────────────────────────────────────────────────────┐
-   │   GRAFANA DASHBOARDS                                        │
-   │   - Timeline: changes over time, x-axis = date/time         │
-   │   - CHG-1234 summary: success/failed/partial                │
-   │   - Per-device table: 300 routers, status, batch, duration  │
-   │   - Filter by: change_id, device group, region              │
-   │   - Drill-down links to Jenkins logs & diffs                │
-   └─────────────────────────────────────────────────────────────┘
+# **11. DASHBOARDS & VISIBILITY**
+
+### **11.1 Grafana Views**
+
+* [ ] Live interface error trends
+* [ ] Auto-remediation frequency
+* [ ] Success/failure rates
+* [ ] Worst devices (Top N)
+* [ ] Kafka consumer lag (health of telemetry pipeline)
+* [ ] SLA compliance indicators
+
+### **11.2 Operator Summary Panels**
+
+* [ ] Last 24 hours anomaly count
+* [ ] Tickets automatically resolved
+* [ ] Human escalations
+* [ ] MTTR reduction metrics
+
+---
+
+# **12. SAFETY MECHANISMS**
+
+### **12.1 Guardrails**
+
+* [ ] Do NOT auto-remediate on:
+
+  * Core uplinks
+  * Firewall interfaces
+  * Routing adjacencies
+* [ ] Mandatory human approval for multi-device actions
+* [ ] Maximum 1 remediation per device in 10 min
+* [ ] Circuit breaker:
+
+  * If more than X devices show same pattern → stop automation
+
+---
+
+# **13. OPTIONAL ADVANCED FEATURES**
+
+### **Kafka Enhancements**
+
+* [ ] Use Kafka Connect to sink telemetry into:
+
+  * S3
+  * Elasticsearch
+  * Snowflake
+* [ ] Use Kafka Streams for:
+
+  * multi-device correlation
+  * cross-site anomaly detection
+* [ ] Use KSQL for live queries:
+
+  * “SELECT * FROM parsed_telemetry WHERE crc_errors > 1000 EMIT CHANGES;”
+
+### **AIOps / ML**
+
+* [ ] Root cause classification model
+* [ ] Predictive interface failure (degradation signals)
+
+---
+
+# ✔ You now have a complete, enterprise-grade closed-loop automation checklist
+
+Perfect for:
+
+* NOC teams
+* NetDevOps automation team
+* SRE-style network reliability engineering
+* Documentation, audits, runbooks, or onboarding
+
+---
+
+```
+                             CLOSED-LOOP AUTOMATION
+                (Interface Error Detection → Auto-Troubleshoot → Repair)
+   ┌────────────────────────────────────────────────────────────────────────────┐
+   │                                NETWORK                                   │
+   │    ┌──────────┐    ┌──────────┐    ┌──────────┐    ┌──────────┐            │
+   │    │ Router A │    │ Router B │    │ Switch C │    │ Router D │ ... (N)   │
+   │    └──────────┘    └──────────┘    └──────────┘    └──────────┘            │
+   │       │               │               │               │                   │
+   │  Telemetry (gNMI/NETCONF/SSH/SNMP/Flow) / Syslog / Streaming Telemetry    │
+   └────────┬──────────────┬──────────────┬──────────────┬────────────────────┘
+            │              │              │              │
+            ▼              ▼              ▼              ▼
+   ┌─────────────────────────────────────────────────────────────────────────┐
+   │            TELEMETRY & LOG COLLECTION LAYER (Agents / Collectors)      │
+   │  - Telegraf / collectd / fluentd / Vector / Prometheus exporters        │
+   │  - Telemetry agents (gNMI collectors, streaming)                        │
+   │  - Syslog agents -> Log pipeline (Loki or ELK: Logstash/Fluentd -> ES)  │
+   └────────────┬───────────────────────────────────────────────┬────────────┘
+                │                                               │
+                ▼                                               ▼
+   ┌──────────────────────────┐                      ┌───────────────────────────┐
+   │   METRICS TIME SERIES    │                      │      LOG STORAGE &        │
+   │      (Prometheus)        │                      │     ANALYTICS (Loki / ES) │
+   └─────────┬────────────────┘                      └─────────┬─────────────────┘
+             │                                              │
+             │  PromQL Alerts                                 │
+             │  (interface_errors > 0, or error_rate rising)  │
+             ▼                                              ▼
+   ┌─────────────────────────────────────────────────────────────────────────┐
+   │                         ALERTMANAGER / RULES                            │
+   │  - Aggregate alert -> group by device/interface                          │
+   │  - Silence / dedupe / routing rules                                      │
+   │  - Configure webhook -> POST to Automation Engine                        │
+   └────────────┬────────────────────────────────────────────────────────────┘
+                │
+                ▼
+   ┌─────────────────────────────────────────────────────────────────────────┐
+   │                    AUTOMATION ORCHESTRATOR                              │
+   │   (StackStorm / Rundeck / n8n / Apache Airflow / custom webhook svc)    │
+   │  - Receives alert webhook (device, interface, metric snapshot, time)     │
+   │  - Lookup runbook (per-device / per-interface type)                      │
+   │  - Decide: Auto-remediate? (policy) or escalate to human                 │
+   └────────────┬────────────────────────────────────────────────────────────┘
+                │
+   ┌────────────┼───────────────────────────────────────────────────────────┐
+   │            │                                                           │
+   │ (A) Auto   │ (B) Escalate to Human (if risky / threshold)                │
+   │ remediate  │ - Send Slack/Email w/ suggested runbook                     │
+   │ workflow   │ - Wait for approval (timeout fallback may allow auto)       │
+   │            │                                                           │
+   └─────┬──────┴───────────────────────────────────────────────────────────┘
+         │
+         ▼
+   ┌─────────────────────────────────────────────────────────────────────────┐
+   │                     DATA COLLECTION (for troubleshooting)               │
+   │  - Run telemetry collectors (gNMI/NETCONF/SSH) to fetch:                │
+   │      * show interfaces <ifname> counters (input errors, CRC, drops)     │
+   │      * show log last 1000 lines                                        │
+   │      * show ip route / bgp summary / arp table                         │
+   │      * tcpdump or pcap on interface (selective capture)                │
+   │  - Store raw outputs as artifacts (S3 or DB) & index logs               │
+   └────────────┬────────────────────────────────────────────────────────────┘
+                │
+                ▼
+   ┌─────────────────────────────────────────────────────────────────────────┐
+   │                         ANALYSIS / Triage LAYER                         │
+   │  - Rule-based analysis (Elastic Watcher / ElastAlert / custom rules)    │
+   │     * e.g., if CRC errors > X => likely physical layer (cabling/duplex) │
+   │     * if errors correlated with speed/duplex flaps => suspect mismatch  │
+   │  - ML anomaly detection (optional) on time-series                       │
+   │  - Correlate logs + metrics + config changes                             │
+   │  - Determine candidate remediation actions (bounce, clear counters,     │
+   │    change speed/duplex, increase buffers, change QoS, reprogram ACL)    │
+   └────────────┬────────────────────────────────────────────────────────────┘
+                │
+                ▼
+   ┌─────────────────────────────────────────────────────────────────────────┐
+   │                         REMEDIATION ENGINE                              │
+   │  (Ansible / Nornir / pyATS / Salt)                                      │
+   │  - Fetch device creds from Vault (HashiCorp Vault / Creds store)        │
+   │  - Execute safe runbook steps with checks:                              │
+   │      1) Non-disruptive: clear counters (clear counters)                 │
+   │      2) Reconfigure (change interface speed/duplex) with dry-run first  │
+   │      3) Bounce interface (shutdown/no shutdown) on single device        │
+   │      4) Apply ACL or QoS tweak (if related)                            │
+   │      5) Capture post-action outputs                                     │
+   │  - Use transaction/backup: save config before change, allow rollback     │
+   │  - Record action status & logs to artifacts / DB                        │
+   └────────────┬────────────────────────────────────────────────────────────┘
+                │
+                ▼
+   ┌─────────────────────────────────────────────────────────────────────────┐
+   │                       VERIFICATION & MONITORING                         │
+   │  - Run post-checks:                                                     │
+   │      * re-read interface counters (should drop to baseline)             │
+   │      * check interface operational state                                │
+   │      * run connectivity tests (ping next-hop, traffic test)            │
+   │  - If OK:                                                                │
+   │      * Close alert in Alertmanager                                      │
+   │      * Update Incident/Ticket (Jira/ServiceNow)                         │
+   │      * Log resolution to DB / artifact storage                           │
+   │  - If NOT OK:                                                           │
+   │      * escalate to human operator                                        │
+   │      * optionally run higher-impact remediation (with human approval)    │
+   └────────────┬────────────────────────────────────────────────────────────┘
+                │
+                ▼
+   ┌─────────────────────────────────────────────────────────────────────────┐
+   │                       FEEDBACK & LEARNING LAYER                         │
+   │  - Feed the analysis/remediation outcome back to:                        │
+   │      * Monitoring rules (adjust thresholds, create new alerts)          │
+   │      * Runbooks (improve automated actions or add human checks)         │
+   │      * ML models (train on labeled incidents)                           │
+   │  - Metrics & Dashboards: Grafana (Prometheus + Loki)                    │
+   │      * show incidents over time, auto-remediations succeeded/failed     │
+   │  - Audit trail & compliance storage (DB or SIEM)                        │
+   └─────────────────────────────────────────────────────────────────────────┘
+```
+
+---
+
+## Quick mapping: components → recommended open-source tools
+
+* Metrics collection: **Prometheus** (node/exporters or device exporters, Telegraf with Prometheus output)
+* Logs & packet captures: **Loki** (lightweight) or **Elasticsearch + Logstash**
+* Alerting & routing: **Alertmanager** (Prometheus)
+* Automation orchestrator (webhook receiver + workflows): **StackStorm**, **Rundeck**, or **n8n**
+* Remediation executor: **Ansible** / **Nornir** / **pyATS** (for device-safe network changes)
+* Secrets: **HashiCorp Vault** or Jenkins credentials store
+* Artifact storage: S3 / MinIO / Jenkins artifact store
+* Analysis rules: **ElastAlert**, **Kapacitor**, simple Python rule engine, or ML library (scikit-learn)
+* Visualization & dashboards: **Grafana** (Prometheus + Loki datasources)
+* Ticketing integration: **Jira** / **ServiceNow** (via API)
+
+---
+
+## Minimal safe runbook example (abstract)
+
+1. Alertmanager fires for `interface_input_errors > 100` on Router A Gi0/1.
+2. Automation engine receives webhook -> runbook "net-if-error".
+3. Collect: `show interface Gi0/1`, `show logging last 500`, `show controllers Gi0/1`. Save artifacts.
+4. Analyze: CRC errors present + link flaps -> probable physical issue. Suggested action: check duplex/speed and re-negotiate, or bounce port.
+5. If policy = auto-remediate: run Ansible task to `shutdown` → wait → `no shutdown` on Gi0/1 (with pre-backup and retries). If risky device: escalate to human.
+6. Post-check: `show interface Gi0/1` errors falling to 0 → close alert → update ticket. If not fixed -> escalate.
+
+---
+
+## Safety & best-practices (must-haves)
+
+* Always take config backup before any change.
+* Prefer non-disruptive actions first (clear counters, admin reset on 1 device) before broad disruptive actions.
+* Canary remediation on single device (or small set) before sweeping fix.
+* Enforce role-based approval for high-impact actions.
+* Add throttling and circuit-breaker to avoid cascading changes.
+* Maintain audit trail for every automated action and store outputs.
+* Use idempotent playbooks and validate device capability before action.
+
+---
 
