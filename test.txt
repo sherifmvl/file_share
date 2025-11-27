@@ -1,17 +1,460 @@
-╒══════════════════════════════════════╤═════════╕
-│ Category                             │   Count │
-╞══════════════════════════════════════╪═════════╡
-│ ☁️ Cloud / Infra / Storage           │     177 │
-├──────────────────────────────────────┼─────────┤
-│ ✉️ Email / Messaging                 │      20 │
-├──────────────────────────────────────┼─────────┤
-│ ❔ Unknown / Uncategorized            │      26 │                   ├──────────────────────────────────────┼─────────┤                    │ 🌐 Browsers / Search Engines          │      33 │
-├──────────────────────────────────────┼─────────┤
-│ 🍏 Apple Services                     │     172 │                   ├──────────────────────────────────────┼─────────┤
-│ 🎓 Academic / Research                │       3 │                   ├──────────────────────────────────────┼─────────┤
-│ 🎬 Streaming / CDN / Media            │     239 │
-├──────────────────────────────────────┼─────────┤
-│ 🎮 Gaming                             │      39 │                   ├──────────────────────────────────────┼─────────┤
-│ 🏢 Corporate / IT Services            │       2 │                   ├──────────────────────────────────────┼─────────┤
-│ 🏥 Healthcare / Medical               │       3 │                   ├──────────────────────────────────────┼─────────┤
-│ 🏦 Banking / Financial Services
+___
+
+🚀 Evolution of Network Automation – From CLI Scripts to Full Closed-Loop Systems
+
+1. Bash / Batch Scripting
+
+What it was used for
+
+Early automation for repetitive CLI tasks on routers/switches (SSH + expect scripts)
+
+Basic backups, pushing configs, parsing outputs
+
+
+Advantages
+
+Simple, quick to write
+
+No external libraries required
+
+Works anywhere with SSH
+
+
+Drawbacks
+
+Hard to maintain, fragile
+
+No structured output → Regex hell
+
+Vendor-specific commands
+
+No error handling or idempotency
+
+
+Why we moved on
+
+Networks grew. Manual CLI scraping broke often. Engineers needed something more scalable and readable.
+
+
+---
+
+2. Perl / Python / Ruby Scripting
+
+Use cases
+
+Device configuration scripts
+
+Pulling show commands
+
+Parsing outputs
+
+API calls (as they slowly emerged)
+
+
+Advantages
+
+Better parsing + logic
+
+Larger ecosystems (Python especially)
+
+Reusable libraries
+
+
+Drawbacks
+
+Still CLI scraping
+
+Each script → custom logic (no framework)
+
+Not standardized across teams
+
+
+Why we moved on
+
+We needed vendor abstraction and consistency, not 1000 one-off scripts.
+
+
+---
+
+3. Configuration Management Tools (Ansible, Salt, Chef, Puppet)
+
+Use cases
+
+Larger scale config deployment
+
+Compliance templates
+
+Inventory-driven automation
+
+
+Advantages
+
+Declarative (desired-state) automation
+
+Huge community (Ansible especially in networking)
+
+Vendor modules (Cisco, Juniper, Arista, F5, Palo Alto…)
+
+
+Drawbacks
+
+Slow for large deployments (Ansible = SSH per task)
+
+Still sends CLI commands for many vendors
+
+Not ideal for real-time or closed-loop automation
+
+
+Why we moved on
+
+Automation needed state awareness, modeling, and real-time programmability.
+
+
+---
+
+4. Network APIs + Python Frameworks
+
+Examples
+
+NETCONF
+
+RESTCONF
+
+gNMI / OpenConfig
+
+NAPALM
+
+Netmiko
+
+Scrapli
+
+NCClient
+
+
+Advantages
+
+Structured data (XML / JSON)
+
+Less CLI scraping
+
+Vendor abstraction (NAPALM, Scrapli)
+
+Faster + more reliable
+
+
+Drawbacks
+
+Not all features exposed in APIs
+
+Vendor inconsistencies
+
+Requires understanding of new protocols (NETCONF/YANG)
+
+
+Why we moved on
+
+Networks started producing too much data. Needed telemetry + scale + faster change pipelines.
+
+
+---
+
+5. YANG Data Modeling + Model-Driven Telemetry
+
+Key technologies
+
+YANG Models (OpenConfig, vendor-native)
+
+Streaming Telemetry (gRPC, gNMI)
+
+Model-driven programmability
+
+
+Advantages
+
+Full vendor-agnostic modeling
+
+Real-time telemetry
+
+Consistent state representation across vendors
+
+Required for closed-loop automation
+
+
+Drawbacks
+
+Steeper learning curve
+
+Requires modern OS versions
+
+Vendor support still uneven
+
+
+Why we moved on
+
+We now had structured data + real-time state, so the next logical step: testing + validation + continuous automation.
+
+
+---
+
+6. Testing & Validation Frameworks (pyATS, Batfish, Suzieq)
+
+Use cases
+
+Pre/post validation
+
+CI/CD network testing
+
+Network intent enforcement
+
+Topology modeling
+
+
+Advantages
+
+pyATS: Cisco-supported test automation
+
+Batfish: Predictive modeling (what-if analysis)
+
+Suzieq: Multi-vendor analytics
+
+
+Drawbacks
+
+Mostly used by advanced teams
+
+Requires code pipeline integration
+
+
+Why we moved on
+
+As networks became “code,” they needed Git workflows, CI/CD, and source-of-truth systems.
+
+
+---
+
+7. Source-of-Truth & Inventory Automation
+
+Examples
+
+NetBox
+
+Nautobot
+
+Infoblox
+
+IPAM/DCIM platforms
+
+
+Use cases
+
+Inventory management (devices, IPs, racks)
+
+Intent backend for automation pipelines
+
+API-driven dynamic infrastructure data
+
+
+Advantages
+
+Single source of truth
+
+Integrates with Ansible, Python tools
+
+Enables intent-based automation
+
+
+Drawbacks
+
+Requires disciplined data population
+
+Teams must adopt workflows
+
+
+Why we moved on
+
+Once inventory + intent were centralized, automation needed pipelines.
+
+
+---
+
+8. GitOps + CI/CD Pipelines for Networking
+
+Tools
+
+GitHub Actions
+
+GitLab CI
+
+Jenkins
+
+ArgoCD/Fleet (for Kubernetes networks)
+
+
+Use cases
+
+Submit config changes via Git
+
+Automated testing with pyATS/Batfish
+
+Automated deployment via Ansible or Nornir
+
+Post-change validation
+
+
+Advantages
+
+Version control for the network
+
+Consistency & repeatability
+
+Peer-reviewed changes
+
+
+Drawbacks
+
+Cultural shift required
+
+Toolchain complexity
+
+
+Why we moved on
+
+Now networks needed full closed-loop automation.
+
+
+---
+
+9. Closed-Loop Automation, Analytics & Event-Driven Systems
+
+Tools
+
+Cisco NSO
+
+Apstra (Juniper)
+
+Itential
+
+Kafka event buses
+
+Streaming telemetry → automation triggers
+
+Intent-based networking platforms
+
+
+Advantages
+
+Self-healing automation
+
+Auto-remediation
+
+Proactive actions based on telemetry
+
+Full lifecycle automation
+
+
+Drawbacks
+
+High complexity
+
+Requires deep modeling & telemetry architecture
+
+Vendor lock-in (some platforms)
+
+
+
+---
+
+10. Modern Network Automation Tooling Universe (2025)
+
+Here’s a consolidated view by function:
+
+🧰 Config Automation
+
+Ansible
+
+Nornir
+
+Netmiko / Scrapli
+
+NAPALM
+
+
+📦 Source of Truth
+
+NetBox
+
+Nautobot
+
+Apstra
+
+Infoblox
+
+
+🧪 Validation & Testing
+
+pyATS
+
+Batfish
+
+Suzieq
+
+Netmiko/ntc-templates (parsing)
+
+
+📡 Telemetry
+
+gNMI
+
+Model-Driven Streaming Telemetry
+
+Telegraf / Prometheus / Grafana
+
+
+🔄 Closed-Loop/Orchestration
+
+Cisco NSO
+
+Itential
+
+Anuta
+
+Apstra
+
+Salt Event Reactor
+
+
+🔧 CI/CD
+
+GitHub/GitLab
+
+Jenkins
+
+Terraform (for cloud networks)
+
+
+☁️ Cloud & SDN Automation
+
+Terraform
+
+AWS/GCP/Azure SDKs
+
+NSX-T / ACI / DNAC SDKs
+
+
+____
+
+some other tools using in network automation, if it's appropriate add those too
+Network Source of Truth (NSoT)
+NetBox
+NautoBot
+Infrahub
+
+kafka for streaming database
+SQL for storing the static database 
+
+automation orchestratior
+Stackstrom
+rundeck
+..
+
+
