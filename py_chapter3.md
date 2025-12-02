@@ -327,7 +327,7 @@ Reachable: True
 ```
 
 ---
-## **3.18 ASCII Diagram — Memory & Variables**
+## **3.18 Memory & Variables**
 
 ```
 router_ip -----> "192.168.1.1"
@@ -365,17 +365,12 @@ These fundamentals prepare you for deeper topics in later chapters.
 
 ---
 
-# 🎉 **Chapter 3 Completed**
-
----
-
-# ▶️ **Ready for Chapter 4?**
 
 Next:
 
 # **Chapter 4 — Operators & Expressions (Beginner → Advanced)**
 
-Covers:
+Covers: <br>
 
 * Arithmetic
 * Logical
@@ -385,5 +380,3 @@ Covers:
 * Identity
 * Operator precedence
 * Network-focused examples
-
-Reply: **“Next chapter”** to continue.
