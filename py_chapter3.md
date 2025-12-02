@@ -86,7 +86,7 @@ if x == 5:
 ### Default indentation = **4 spaces**
 
 ---
-### ASCII Diagram — Python Block Structure
+### Python Block Structure
 
 ```
 if condition:
@@ -114,10 +114,10 @@ Python determines the type **automatically** (dynamic typing).
 ---
 ## **3.6 Rules for Variable Names**
 
-✔ Can contain letters, numbers, underscore
-✔ Must **start with a letter or underscore**
-✔ Case-sensitive
-✔ Cannot use keywords (`if`, `else`, `class`, …)
+✔ Can contain letters, numbers, underscore <br>
+✔ Must **start with a letter or underscore** <br>
+✔ Case-sensitive <br>
+✔ Cannot use keywords (`if`, `else`, `class`, …) <br>
 
 Examples:
 
