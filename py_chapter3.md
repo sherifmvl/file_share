@@ -36,6 +36,8 @@ print(x)
 Python executes code **top to bottom**, **left to right**.
 
 ---
+
+<div style="page-break-after: always;"></div>
 ## **3.3 Comments in Python**
 
 Used to explain code for readability.
@@ -151,6 +153,9 @@ host-name = "R1"
 Each type will be covered deeper in coming chapters.
 
 ---
+
+<div style="page-break-after: always;"></div>
+
 ## **3.8 Type Checking**
 
 Use `type()`:
@@ -227,6 +232,9 @@ x = y = z = 10
 ```
 
 ---
+
+<div style="page-break-after: always;"></div>
+
 ## **3.13 Python Operators (Quick Intro)**
 
 Full chapter later — here is the overview:
@@ -338,6 +346,9 @@ is_up     -----> True
 This helps visualize Python variable assignment.
 
 ---
+
+<div style="page-break-after: always;"></div>
+
 ## **3.19 Best Practices for Network Automation Beginners**
 
 * Use meaningful variable names
