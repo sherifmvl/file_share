@@ -368,7 +368,7 @@ These fundamentals prepare you for deeper topics in later chapters.
 
 Next:
 
-# **Chapter 4 — Operators & Expressions (Beginner → Advanced)**
+### **Chapter 4 — Operators & Expressions (Beginner → Advanced)**
 
 Covers: <br>
 
