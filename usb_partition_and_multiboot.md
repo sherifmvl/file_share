@@ -291,11 +291,3 @@ If booting fails, use these commands from the GRUB command line (press `c` at th
 
 ---
 
-## Final Notes
-- **Success!** If all OSes boot, you’ve mastered multi-boot USB creation!
-- **Documentation Tip**: Save this guide as a PDF or Markdown file for future reference.
-- **Enhancement**: Add more ISOs by repeating steps 4-7, adjusting partition sizes if needed.
-
-Enjoy exploring your Linux universe! 
-
----
