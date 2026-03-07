@@ -17,7 +17,7 @@ markdown_reference_sample.md
 
 ---
 
-````markdown
+
 # Markdown Complete Syntax Reference
 
 This file demonstrates **all major Markdown syntax elements** from the original Markdown documentation plus commonly used extensions.
